@@ -1,0 +1,27 @@
+on:
+  pull_request:
+    branches:
+    - projectUsingContainers, main
+jobs:
+  testes-unitarios:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Baixa o código do repositório
+    - name: Checkout do código
+      uses: actions/checkout@v3
+
+    # 2. Prepara o ambiente Node.js
+    - name: Configurar Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    # 3. Instala as dependências
+    - name: Instalar dependências
+      run: npm ci
+
+    # 4. Executa os testes
+    - name: Rodar Testes com Jest
+      run: npm test
