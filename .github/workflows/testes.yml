@@ -56,11 +56,3 @@ jobs:
         run: ls -la node_modules/.bin || true
 
       - name: test
-        env:
-          PGHOST: 127.0.0.1
-          PGUSER: postgres
-          PGPASSWORD: postgres
-          PGDATABASE: shortener
-          PGPORT: 5432
-          PATH: "./node_modules/.bin:${PATH}"
-        run: npm test
