@@ -29,38 +29,33 @@ jobs:
           --health-retries 5
 
     steps:
-      - name: Checkout código
+      - name: checkout
         uses: actions/checkout@v4
 
-      - name: Configurar Node.js
+      - name: setup node
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: '20'
 
-      - name: Instalar dependências
-        run: npm install
+      - name: install deps
+        run: npm ci
 
-      - name: Aguardar PostgreSQL subir
+      - name: wait postgres
         run: |
-          for i in {1..10}; do
+          for i in {1..15}; do
             pg_isready -h 127.0.0.1 -p 5432 && break
-            echo "Postgres ainda não está pronto..."
+            echo "waiting postgres..."
             sleep 2
           done
 
-      - name: Criar tabela URLs
+      - name: create table
         run: |
-          PGPASSWORD=postgres psql -h 127.0.0.1 -U postgres -d shortener -c "
-            CREATE TABLE IF NOT EXISTS urls (
-              code TEXT PRIMARY KEY,
-              url TEXT NOT NULL
-            );
-          "
+          PGPASSWORD=postgres psql -h 127.0.0.1 -U postgres -d shortener -c "CREATE TABLE IF NOT EXISTS urls (code TEXT PRIMARY KEY, url TEXT NOT NULL);"
 
-      - name: Debug - verificar jest
-        run: ls -la node_modules/.bin
+      - name: debug jest
+        run: ls -la node_modules/.bin || true
 
-      - name: Rodar Testes
+      - name: test
         env:
           PGHOST: 127.0.0.1
           PGUSER: postgres
