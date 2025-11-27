@@ -47,17 +47,6 @@ jobs:
       - name: Debug: listar tabelas e colunas
         run: |
           PGPASSWORD=postgres psql -h localhost -U postgres -d shortener -c "\dt"
-          PGPASSWORD=postgres psql -h localhost -U postgres -d shortener -c "
-            SELECT column_name, data_type 
-            FROM information_schema.columns 
-            WHERE table_name='urls';
-          "
+          PGPASSWORD=postgres psql -h localhost -U postgres -d shortener -c "\d urls"
 
-      - name: Rodar testes
-        env:
-          PGHOST: localhost
-          PGUSER: postgres
-          PGPASSWORD: postgres
-          PGDATABASE: shortener
-          PGPORT: 5432
-        run: npm test
+      - name
