@@ -2,11 +2,9 @@ name: Testes
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
   pull_request:
-    branches:
-      - main
+    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
@@ -16,43 +14,51 @@ jobs:
     services:
       postgres:
         image: postgres:15
+        ports:
+          - 5432:5432
         env:
+          POSTGRES_DB: shortener
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: shortener
-        ports:
-          - "5432:5432"
-        options: >-
+        options: |
           --health-cmd "pg_isready -U postgres"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 5
 
     steps:
-      - name: checkout
+      - name: Checkout código
         uses: actions/checkout@v4
 
-      - name: setup node
+      - name: Instalar Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: 18
 
-      - name: install deps
-        run: npm ci
+      - name: Instalar dependências
+        run: npm install
 
-      - name: wait postgres
+      - name: Esperar PostgreSQL ficar pronto
         run: |
-          for i in {1..15}; do
-            pg_isready -h 127.0.0.1 -p 5432 && break
-            echo "waiting postgres..."
-            sleep 2
+          for i in {1..10}; do
+            if pg_isready -h localhost -p 5432 -U postgres; then
+              echo "Postgres está pronto!"
+              exit 0
+            fi
+            echo "Aguardando Postgres..."
+            sleep 3
           done
+          echo "Postgres não subiu a tempo"
+          exit 1
 
-      - name: create table
-        run: |
-          PGPASSWORD=postgres psql -h 127.0.0.1 -U postgres -d shortener -c "CREATE TABLE IF NOT EXISTS urls (code TEXT PRIMARY KEY, url TEXT NOT NULL);"
+      - name: Debug: verificar jest
+        run: ls -la node_modules/.bin
 
-      - name: debug jest
-        run: ls -la node_modules/.bin || true
-
-      - name: test
+      - name: Rodar testes
+        env:
+          PGHOST: localhost
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: shortener
+          PGPORT: 5432
+        run: npm test
