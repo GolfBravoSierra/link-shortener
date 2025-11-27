@@ -1,5 +1,5 @@
 const request = require("supertest");
-const { createApp, createPoolFromEnv } = require("../../index");
+const { createApp, createPoolFromEnv } = require("./index.js");
 
 describe("Integração: encurtador de URLs", () => {
   let app;
