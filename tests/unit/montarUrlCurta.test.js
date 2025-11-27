@@ -1,4 +1,4 @@
-const { montarUrlCurta } = require('./index');
+const { montarUrlCurta } = require('../../index.js');
 
 describe('Função montarUrlCurta', () => {
   test('monta corretamente a URL curta', () => {

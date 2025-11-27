@@ -1,4 +1,4 @@
-const { validarUrl } = require('./index');
+const { validarUrl } = require('../../index.js');
 
 describe('Função validarUrl', () => {
   test('aceita URL válida com http', () => {
