@@ -28,19 +28,29 @@ jobs:
       - name: Instalar Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 20
 
       - name: Instalar dependências
         run: npm install
 
-      - name: Criar tabela no PostgreSQL
+      - name: Criar tabela urls
         run: |
-          sudo apt-get install -y postgresql-client
+          sudo apt update
+          sudo apt install -y postgresql-client
           PGPASSWORD=postgres psql -h localhost -U postgres -d shortener -c "
             CREATE TABLE IF NOT EXISTS urls (
               code TEXT PRIMARY KEY,
               url TEXT NOT NULL
             );
+          "
+
+      - name: Debug: listar tabelas e colunas
+        run: |
+          PGPASSWORD=postgres psql -h localhost -U postgres -d shortener -c "\dt"
+          PGPASSWORD=postgres psql -h localhost -U postgres -d shortener -c "
+            SELECT column_name, data_type 
+            FROM information_schema.columns 
+            WHERE table_name='urls';
           "
 
       - name: Rodar testes
