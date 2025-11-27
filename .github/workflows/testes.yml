@@ -47,7 +47,7 @@ jobs:
       - name: Debug: listar tabelas e colunas
         run: |
           PGPASSWORD=postgres psql -h localhost -U postgres -d shortener -c "\dt"
-          PGPASSWORD=postgres psql -h localhost -U postgres -d shortener -c "\d urls"
+          PGPASSWORD=postgres psql -h localhost -U postgres -d shortener -c "\\d urls"
 
       - name: Rodar Testes
         env:
