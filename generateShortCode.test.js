@@ -1,4 +1,4 @@
-const { generateShortCode } = require('./utils');
+const { generateShortCode } = require('./generateShortCode');
 
 describe('Gerador de Códigos Curtos', () => {
 
