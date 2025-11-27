@@ -1,55 +1,49 @@
-name: Testes Unitarios e Integracao
+name: CI Testes
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  tests:
+  test:
     runs-on: ubuntu-latest
 
     services:
       postgres:
-        image: postgres:15
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: shortener
         ports:
           - 5432:5432
-        env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_USER: postgres
-          POSTGRES_DB: shortener
         options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
     steps:
-      - name: Checkout do codigo
+      - name: Checar o código
         uses: actions/checkout@v3
 
       - name: Instalar Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 20
+          node-version: 18
 
-      - name: Instalar dependencias
-        run: npm install
+      - name: Instalar dependências
+        run: npm ci
 
-      - name: Criar tabela urls
-        run: |
-          sudo apt update
-          sudo apt install -y postgresql-client
-          PGPASSWORD=postgres psql -h localhost -U postgres -d shortener -c "
-            CREATE TABLE IF NOT EXISTS urls (
-              code TEXT PRIMARY KEY,
-              url TEXT NOT NULL
-            );
-          "
+      - name: Debug: verificar jest
+        run: ls -la node_modules/.bin
 
-      - name: Debug listar tabelas
-        run: |
-          PGPASSWORD=postgres psql -h localhost -U postgres -d shortener -c "\dt"
-          PGPASSWORD=postgres psql -h localhost -U postgres -d shortener -c "\d urls"
+      - name: Dar permissão ao Jest (failsafe)
+        run: chmod +x ./node_modules/.bin/jest
 
-      - name: Rodar testes
+      - name: Rodar Testes
         env:
           PGHOST: localhost
           PGUSER: postgres
