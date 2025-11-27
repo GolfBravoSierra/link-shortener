@@ -22,28 +22,28 @@ jobs:
           POSTGRES_PASSWORD: postgres
 
     steps:
-      - name: Checkout código
+      - name: Checkout codigo
         uses: actions/checkout@v4
 
-      - name: Instalar Node.js
+      - name: Instalar NodeJS
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Instalar dependências
+      - name: Instalar dependencias
         run: npm install
 
-      - name: Aguardar PostgreSQL subir
+      - name: Aguardar Postgres subir
         run: |
           for i in {1..20}; do
             if pg_isready -h localhost -p 5432 -U postgres; then
-              echo "Postgres está pronto!"
+              echo "Postgres pronto!"
               exit 0
             fi
             echo "Aguardando Postgres..."
             sleep 2
           done
-          echo "Postgres não subiu a tempo"
+          echo "Postgres nao subiu a tempo"
           exit 1
 
       - name: Criar tabela URLs
@@ -51,10 +51,10 @@ jobs:
           PGPASSWORD=postgres psql -h localhost -U postgres -d shortener \
             -c "CREATE TABLE IF NOT EXISTS urls (code TEXT PRIMARY KEY, url TEXT NOT NULL);"
 
-      - name: Debug - verificar jest
+      - name: Debug verificar jest
         run: ls -la node_modules/.bin
 
-      - name: Rodar Testes
+      - name: Rodar testes
         env:
           PGHOST: localhost
           PGUSER: postgres
