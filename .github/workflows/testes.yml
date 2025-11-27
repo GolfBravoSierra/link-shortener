@@ -2,10 +2,12 @@ name: Testes
 
 on:
   push:
-    branches: ["main"]
+    branches:
+      - main
   pull_request:
-    branches: ["main"]
-  workflow_dispatch:    # <---- permite executar manualmente
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
   test:
@@ -48,7 +50,12 @@ jobs:
 
       - name: Criar tabela URLs
         run: |
-          PGPASSWORD=postgres psql -h 127.0.0.1 -U postgres -d shortener -c "CREATE TABLE IF NOT EXISTS urls (code TEXT PRIMARY KEY, url TEXT NOT NULL);"
+          PGPASSWORD=postgres psql -h 127.0.0.1 -U postgres -d shortener -c "
+            CREATE TABLE IF NOT EXISTS urls (
+              code TEXT PRIMARY KEY,
+              url TEXT NOT NULL
+            );
+          "
 
       - name: Debug - verificar jest
         run: ls -la node_modules/.bin
