@@ -20,11 +20,6 @@ jobs:
           POSTGRES_DB: shortener
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-        options: |
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 5
 
     steps:
       - name: Checkout código
@@ -33,28 +28,33 @@ jobs:
       - name: Instalar Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
 
       - name: Instalar dependências
         run: npm install
 
-      - name: Esperar PostgreSQL ficar pronto
+      - name: Aguardar PostgreSQL subir
         run: |
-          for i in {1..10}; do
+          for i in {1..20}; do
             if pg_isready -h localhost -p 5432 -U postgres; then
               echo "Postgres está pronto!"
               exit 0
             fi
             echo "Aguardando Postgres..."
-            sleep 3
+            sleep 2
           done
           echo "Postgres não subiu a tempo"
           exit 1
 
-      - name: Debug: verificar jest
+      - name: Criar tabela URLs
+        run: |
+          PGPASSWORD=postgres psql -h localhost -U postgres -d shortener \
+            -c "CREATE TABLE IF NOT EXISTS urls (code TEXT PRIMARY KEY, url TEXT NOT NULL);"
+
+      - name: Debug - verificar jest
         run: ls -la node_modules/.bin
 
-      - name: Rodar testes
+      - name: Rodar Testes
         env:
           PGHOST: localhost
           PGUSER: postgres
