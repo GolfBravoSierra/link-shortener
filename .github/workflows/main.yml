@@ -3,9 +3,25 @@ on:
   push:
     branches:
     - main
+
 jobs:
   testes-unitarios:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: shortener
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d shortener"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
 
     steps:
     # 1. Baixa o código do repositório
@@ -19,10 +35,42 @@ jobs:
         node-version: '18'
         cache: 'npm'
 
-    # 3. Instala as dependências
+    # 3. Instala psql client (para aplicar schema.sql)
+    - name: Instalar psql client
+      run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+    # 4. Instala dependências da aplicação
     - name: Instalar dependências
       run: npm ci
 
-    # 4. Executa os testes
+    # 5. Espera o PostgreSQL ficar pronto
+    - name: Esperar Postgres iniciar
+      env:
+        PGPASSWORD: postgres
+      run: |
+        echo "Aguardando Postgres..."
+        until pg_isready -h localhost -p 5432 -U postgres -d shortener; do
+          sleep 1
+        done
+        echo "Postgres pronto!"
+
+    # 6. Aplicar schema.sql
+    - name: Aplicar schema no banco
+      env:
+        PGPASSWORD: postgres
+      run: |
+        if [ -f db/schema.sql ]; then
+          psql -h localhost -U postgres -d shortener -f db/schema.sql
+        else
+          echo "db/schema.sql não encontrado — ignorando."
+        fi
+
+    # 7. Executa os testes
     - name: Rodar Testes com Jest
+      env:
+        PGHOST: localhost
+        PGUSER: postgres
+        PGPASSWORD: postgres
+        PGDATABASE: shortener
+        PGPORT: 5432
       run: npm test
