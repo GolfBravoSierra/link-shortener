@@ -1,8 +1,6 @@
-name: Testes (Unitários e Integração)
+name: Testes Unitarios e Integracao
 
-on:
-  push:
-  pull_request:
+on: [push, pull_request]
 
 jobs:
   tests:
@@ -24,7 +22,7 @@ jobs:
           --health-retries 5
 
     steps:
-      - name: Checkout do código
+      - name: Checkout do codigo
         uses: actions/checkout@v3
 
       - name: Instalar Node.js
@@ -32,28 +30,26 @@ jobs:
         with:
           node-version: 20
 
-      - name: Instalar dependências
+      - name: Instalar dependencias
         run: npm install
 
-      - name: Criar tabela urls (se não existir)
+      - name: Criar tabela urls
         run: |
-          sudo apt-get update -y
-          sudo apt-get install -y postgresql-client
-          cat <<'SQL' > /tmp/create_urls.sql
-          CREATE TABLE IF NOT EXISTS urls (
-            code TEXT PRIMARY KEY,
-            url TEXT NOT NULL
-          );
-          SQL
-          PGPASSWORD=postgres psql -h localhost -U postgres -d shortener -f /tmp/create_urls.sql
+          sudo apt update
+          sudo apt install -y postgresql-client
+          PGPASSWORD=postgres psql -h localhost -U postgres -d shortener -c "
+            CREATE TABLE IF NOT EXISTS urls (
+              code TEXT PRIMARY KEY,
+              url TEXT NOT NULL
+            );
+          "
 
-      - name: Debug: listar tabelas e colunas (info_schema)
+      - name: Debug listar tabelas
         run: |
           PGPASSWORD=postgres psql -h localhost -U postgres -d shortener -c "\dt"
-          PGPASSWORD=postgres psql -h localhost -U postgres -d shortener -c "SELECT table_name FROM information_schema.tables WHERE table_schema='public';"
-          PGPASSWORD=postgres psql -h localhost -U postgres -d shortener -c "SELECT column_name, data_type FROM information_schema.columns WHERE table_name='urls' ORDER BY ordinal_position;"
+          PGPASSWORD=postgres psql -h localhost -U postgres -d shortener -c "\d urls"
 
-      - name: Rodar Testes
+      - name: Rodar testes
         env:
           PGHOST: localhost
           PGUSER: postgres
