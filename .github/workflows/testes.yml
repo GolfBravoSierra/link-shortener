@@ -10,7 +10,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:14
+        image: postgres:15
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -24,26 +24,41 @@ jobs:
           --health-retries=5
 
     steps:
-      - name: Checkout do codigo
+      - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Instalar Node.js
+      - name: Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 20
 
-      - name: Instalar dependencias
+      - name: Install deps
         run: npm ci
 
-      - name: Debug Jest
-        run: ls -la node_modules/.bin
+      - name: Install psql client
+        run: |
+          sudo apt update
+          sudo apt install -y postgresql-client
 
-      - name: Permissao Jest
+      - name: Criar tabela URLs (no container)
+        run: |
+          PGPASSWORD=postgres psql -h postgres -U postgres -d shortener -c "
+            CREATE TABLE IF NOT EXISTS urls (
+              code TEXT PRIMARY KEY,
+              url TEXT NOT NULL
+            );
+          "
+
+      - name: Debug tabelas
+        run: |
+          PGPASSWORD=postgres psql -h postgres -U postgres -d shortener -c "\dt"
+
+      - name: Permitir Jest
         run: chmod +x node_modules/.bin/jest || true
 
       - name: Rodar testes
         env:
-          PGHOST: localhost
+          PGHOST: postgres
           PGUSER: postgres
           PGPASSWORD: postgres
           PGDATABASE: shortener
