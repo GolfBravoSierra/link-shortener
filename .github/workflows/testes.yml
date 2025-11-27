@@ -2,9 +2,7 @@ name: CI Testes
 
 on:
   push:
-    branches: [ main ]
   pull_request:
-    branches: [ main ]
 
 jobs:
   test:
@@ -26,7 +24,7 @@ jobs:
           --health-retries=5
 
     steps:
-      - name: Checar o código
+      - name: Checkout do codigo
         uses: actions/checkout@v3
 
       - name: Instalar Node.js
@@ -34,16 +32,16 @@ jobs:
         with:
           node-version: 18
 
-      - name: Instalar dependências
+      - name: Instalar dependencias
         run: npm ci
 
-      - name: Debug: verificar jest
+      - name: Debug Jest
         run: ls -la node_modules/.bin
 
-      - name: Dar permissão ao Jest (failsafe)
-        run: chmod +x ./node_modules/.bin/jest
+      - name: Permissao Jest
+        run: chmod +x node_modules/.bin/jest || true
 
-      - name: Rodar Testes
+      - name: Rodar testes
         env:
           PGHOST: localhost
           PGUSER: postgres
