@@ -19,7 +19,7 @@ jobs:
           - 5432:5432
         options: >-
           --health-cmd="pg_isready -U postgres"
-          --health-interval=10s
+          --health-interval=5s
           --health-timeout=5s
           --health-retries=5
 
@@ -40,9 +40,17 @@ jobs:
           sudo apt update
           sudo apt install -y postgresql-client
 
-      - name: Criar tabela URLs (no container)
+      - name: Aguardar Postgres subir
         run: |
-          PGPASSWORD=postgres psql -h postgres -U postgres -d shortener -c "
+          for i in {1..10}; do
+            PGPASSWORD=postgres psql -h localhost -U postgres -d shortener -c "SELECT 1" && break
+            echo "Postgres ainda não está pronto... tentando novamente"
+            sleep 3
+          done
+
+      - name: Criar tabela URLs
+        run: |
+          PGPASSWORD=postgres psql -h localhost -U postgres -d shortener -c "
             CREATE TABLE IF NOT EXISTS urls (
               code TEXT PRIMARY KEY,
               url TEXT NOT NULL
@@ -51,14 +59,14 @@ jobs:
 
       - name: Debug tabelas
         run: |
-          PGPASSWORD=postgres psql -h postgres -U postgres -d shortener -c "\dt"
+          PGPASSWORD=postgres psql -h localhost -U postgres -d shortener -c "\dt"
 
       - name: Permitir Jest
         run: chmod +x node_modules/.bin/jest || true
 
       - name: Rodar testes
         env:
-          PGHOST: postgres
+          PGHOST: localhost
           PGUSER: postgres
           PGPASSWORD: postgres
           PGDATABASE: shortener
