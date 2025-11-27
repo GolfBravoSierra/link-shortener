@@ -1,6 +1,8 @@
 name: Testes (Unitários e Integração)
 
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
 
 jobs:
   tests:
@@ -33,20 +35,29 @@ jobs:
       - name: Instalar dependências
         run: npm install
 
-      - name: Criar tabela urls
+      - name: Criar tabela urls (se não existir)
         run: |
-          sudo apt update
-          sudo apt install -y postgresql-client
-          PGPASSWORD=postgres psql -h localhost -U postgres -d shortener -c "
-            CREATE TABLE IF NOT EXISTS urls (
-              code TEXT PRIMARY KEY,
-              url TEXT NOT NULL
-            );
-          "
+          sudo apt-get update -y
+          sudo apt-get install -y postgresql-client
+          cat <<'SQL' > /tmp/create_urls.sql
+          CREATE TABLE IF NOT EXISTS urls (
+            code TEXT PRIMARY KEY,
+            url TEXT NOT NULL
+          );
+          SQL
+          PGPASSWORD=postgres psql -h localhost -U postgres -d shortener -f /tmp/create_urls.sql
 
-      - name: Debug: listar tabelas e colunas
+      - name: Debug: listar tabelas e colunas (info_schema)
         run: |
           PGPASSWORD=postgres psql -h localhost -U postgres -d shortener -c "\dt"
-          PGPASSWORD=postgres psql -h localhost -U postgres -d shortener -c "\d urls"
+          PGPASSWORD=postgres psql -h localhost -U postgres -d shortener -c "SELECT table_name FROM information_schema.tables WHERE table_schema='public';"
+          PGPASSWORD=postgres psql -h localhost -U postgres -d shortener -c "SELECT column_name, data_type FROM information_schema.columns WHERE table_name='urls' ORDER BY ordinal_position;"
 
-      - name
+      - name: Rodar Testes
+        env:
+          PGHOST: localhost
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: shortener
+          PGPORT: 5432
+        run: npm test
