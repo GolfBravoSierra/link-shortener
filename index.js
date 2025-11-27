@@ -10,12 +10,19 @@ const PORT = process.env.PORT || 3000;
 
 function validarUrl(url) {
   try {
-    new URL(url);
+    const parsed = new URL(url);
+
+    // Só aceita protocolos http ou https
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return false;
+    }
+
     return true;
   } catch {
     return false;
   }
 }
+
 
 function montarUrlCurta(base, code) {
   if (base.endsWith("/")) {
