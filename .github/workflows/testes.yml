@@ -49,4 +49,11 @@ jobs:
           PGPASSWORD=postgres psql -h localhost -U postgres -d shortener -c "\dt"
           PGPASSWORD=postgres psql -h localhost -U postgres -d shortener -c "\d urls"
 
-      - name
+      - name: Rodar Testes
+        env:
+          PGHOST: localhost
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: shortener
+          PGPORT: 5432
+        run: npm test
